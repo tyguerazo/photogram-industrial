@@ -1,3 +1,4 @@
+# app/models/comment.rb
 # == Schema Information
 #
 # Table name: comments
@@ -18,14 +19,11 @@
 #  fk_rails_...  (author_id => users.id)
 #  fk_rails_...  (photo_id => photos.id)
 #
-require "rails_helper"
+# app/models/comment.rb
+# app/models/comment.rb
+class Comment < ApplicationRecord
+  belongs_to :author, class_name: "User", counter_cache: true
+  belongs_to :photo, counter_cache: true
 
-RSpec.describe Comment, type: :model do
-  describe "has a belongs_to association defined called 'author' with Class name 'User'", points: 1 do
-    it { should belong_to(:author).class_name("User") }
-  end
-
-  describe "has a belongs_to association defined called 'photo'", points: 1 do
-    it { should belong_to(:photo) }
-  end
+  validates :body, presence: true
 end
