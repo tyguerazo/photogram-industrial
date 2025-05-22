@@ -1,20 +1,102 @@
 <div class="row">
   <div class="col-md-6 offset-md-3">
-    <h1>
-      <%= @user.username %>
-    </h1>
+    <h1><%= @user.username %></h1>
+
+    <!-- Stats with clickable links -->
+    <div class="row text-center mb-3">
+      <div class="col">
+        <strong><%= @user.own_photos.count %></strong><br>
+        Posts
+      </div>
+      <div class="col">
+        <%= link_to "followers", user_path(@user.username, show: "followers") %>
+        <br><strong><%= @user.followers.count %></strong>
+      </div>
+      <div class="col">
+        <%= link_to "following", user_path(@user.username, show: "following") %>
+        <br><strong><%= @user.leaders.count %></strong>
+      </div>
+    </div>
+
+    <!-- Show followers list if requested -->
+    <% if params[:show] == "followers" %>
+      <div class="mb-3">
+        <h5>Followers</h5>
+        <% @user.followers.each do |follower| %>
+          <div class="mb-1">
+            <%= follower.username %>
+          </div>
+        <% end %>
+        <% if @user.followers.empty? %>
+          <p>No followers yet.</p>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Show following list if requested -->
+    <% if params[:show] == "following" %>
+      <div class="mb-3">
+        <h5>Following</h5>
+        <% @user.leaders.each do |leader| %>
+          <div class="d-flex justify-content-between align-items-center mb-1">
+            <span><%= leader.username %></span>
+            <% if @user == current_user %>
+              <% follow_request = current_user.sent_follow_requests.accepted.find_by(recipient: leader) %>
+              <% if follow_request %>
+                <%= link_to "Un-follow", follow_request, method: :delete, class: "btn btn-sm btn-outline-danger" %>
+              <% end %>
+            <% end %>
+          </div>
+        <% end %>
+        <% if @user.leaders.empty? %>
+          <p>Not following anyone yet.</p>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Follow/Unfollow Logic -->
+    <% if @user != current_user %>
+      <div class="text-center mb-3">
+        <% existing_follow_request = current_user.sent_follow_requests.find_by(recipient: @user) %>
+        <% if existing_follow_request.present? %>
+          <% if existing_follow_request.accepted? %>
+            <%= link_to "Un-follow", existing_follow_request, method: :delete, class: "btn btn-outline-danger" %>
+          <% elsif existing_follow_request.pending? %>
+            <%= link_to "Un-request", existing_follow_request, method: :delete, class: "btn btn-outline-secondary" %>
+          <% end %>
+        <% else %>
+          <%= form_with model: FollowRequest.new, local: true do |f| %>
+            <%= f.hidden_field :recipient_id, value: @user.id %>
+            <%= f.submit "Follow", class: "btn btn-primary" %>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Accept/Decline Requests - When viewing someone who sent YOU a request -->
+    <% if current_user != @user %>
+      <% pending_request_from_viewed_user = current_user.received_follow_requests.pending.find_by(sender: @user) %>
+      <% if pending_request_from_viewed_user %>
+        <div class="text-center mb-3">
+          <%= link_to "Accept #{@user.username}'s request", accept_follow_request_path(pending_request_from_viewed_user), method: :patch, class: "btn btn-success" %>
+          <%= link_to "Decline #{@user.username}'s request", reject_follow_request_path(pending_request_from_viewed_user), method: :patch, class: "btn btn-danger" %>
+        </div>
+      <% end %>
+    <% end %>
 
     <ul class="nav nav-pills nav-justified">
       <li class="nav-item">
-        <%= link_to "Posts", user_path(@user.username), class: "nav-link active" %>
+        <%= link_to "Posts", user_path(@user.username), class: "nav-link #{'active' if params[:show].blank?}" %>
       </li>
       <li class="nav-item">
-        <%= link_to "Liked photos", liked_path(@user.username), class: "nav-link" %>
+        <%= link_to "Liked", liked_path(@user.username), class: "nav-link" %>
       </li>
     </ul>
   </div>
 </div>
 
-<% @user.own_photos.each do |photo| %>
-  <%= render "photos/photo", photo: photo %>
+<% if params[:show].blank? %>
+  <% @user.own_photos.each do |photo| %>
+    <%= render "photos/photo", photo: photo %>
+  <% end %>
 <% end %>

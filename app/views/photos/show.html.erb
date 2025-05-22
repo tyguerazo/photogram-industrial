@@ -1,10 +1,9 @@
-<p style="color: green"><%= notice %></p>
+<%= render "photos/photo", photo: @photo %>
 
-<%= render @photo %>
-
-<div>
-  <%= link_to "Edit this photo", edit_photo_path(@photo) %> |
-  <%= link_to "Back to photos", photos_path %>
-
-  <%= button_to "Destroy this photo", @photo, method: :delete %>
-</div>
+<% if @photo.owner == current_user %>
+  <div class="text-center mt-3">
+    <%= link_to edit_photo_path(@photo), class: "btn btn-outline-secondary" do %>
+      <i class="fa fa-edit"></i>
+    <% end %>
+  </div>
+<% end %>

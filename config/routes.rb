@@ -1,19 +1,27 @@
 Rails.application.routes.draw do
-  root "photos#index"
+  root "users#feed"
 
   devise_for :users
   
   resources :comments
-  resources :follow_requests
+  resources :follow_requests do
+    member do
+      patch :accept
+      patch :reject
+    end
+  end
   resources :likes
   resources :photos
-  resources :users, only: [:show]
 
+  # Like/Unlike routes
+  post "/likes" => "likes#create"
+  delete "/likes/:id" => "likes#destroy", as: :unlike
+
+  # User profile routes
   get ":username" => "users#show", as: :user
   get ":username/liked" => "users#liked", as: :liked
+  get ":username/feed" => "users#feed", as: :feed
+  get ":username/discover" => "users#discover", as: :discover
 
-  # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
-  # Can be used by load balancers and uptime monitors to verify that the app is live.
   get "up" => "rails/health#show", as: :rails_health_check
-
-  # Render dynamic PWA files from app/views/pwa/* (reme
+end

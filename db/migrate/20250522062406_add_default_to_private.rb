@@ -4,7 +4,7 @@ class AddDefaultToPrivate < ActiveRecord::Migration[8.0]
     change_column_default(
       :users,
       :private,
-      true
+      false
     )
   end
 end
