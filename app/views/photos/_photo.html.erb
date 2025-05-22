@@ -1,27 +1,62 @@
-<div id="<%= dom_id photo %>">
-  <p>
-    <strong>Image:</strong>
-    <%= photo.image %>
-  </p>
-
-  <p>
-    <strong>Comments count:</strong>
-    <%= photo.comments_count %>
-  </p>
-
-  <p>
-    <strong>Likes count:</strong>
-    <%= photo.likes_count %>
-  </p>
-
-  <p>
-    <strong>Caption:</strong>
-    <%= photo.caption %>
-  </p>
-
-  <p>
-    <strong>Owner:</strong>
-    <%= photo.owner_id %>
-  </p>
-
+<div class="row mb-4">
+  <div class="col-md-6 offset-md-3">
+    <div class="card">
+      <%= image_tag photo.image_url, class: "card-img-top" %>
+      <div class="card-body">
+        <h5 class="card-title">
+          <%= photo.owner.username %>
+          <!-- Delete button for photo owner -->
+          <% if photo.owner == current_user %>
+            <%= link_to photo, method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-sm btn-outline-danger float-end" do %>
+              <i class="fa fa-trash"></i>
+            <% end %>
+          <% end %>
+        </h5>
+        <p class="card-text"><%= photo.caption %></p>
+        
+        <!-- Like/Unlike buttons - EXACT text and format expected by tests -->
+        <% existing_like = photo.likes.find_by(fan: current_user) %>
+        <% if existing_like.present? %>
+          <%= link_to "/likes/#{existing_like.id}", method: :delete, class: "btn btn-outline-danger btn-sm" do %>
+            Un-like
+          <% end %>
+        <% else %>
+          <%= form_with url: "/likes", method: :post, local: true, class: "d-inline" do |form| %>
+            <%= form.hidden_field :photo_id, value: photo.id %>
+            <%= form.submit "Like", class: "btn btn-outline-primary btn-sm" %>
+          <% end %>
+        <% end %>
+        
+        <small class="text-muted"><%= photo.likes_count %> likes</small>
+      </div>
+      <ul class="list-group list-group-flush">
+        <% photo.comments.each do |comment| %>
+          <li class="list-group-item">
+            <div class="d-flex">
+              <div class="flex-shrink-0">
+                <%= image_tag comment.author.avatar_image_url, class: "rounded-circle me-2", width: "36px" %>
+              </div>
+              <div class="flex-grow-1 ms-3">
+                <h5 class="mt-0"><%= comment.author.username %></h5>
+                <p><%= comment.body %></p>
+                
+                <!-- Edit/Delete comment buttons with specific icons -->
+                <% if comment.author == current_user %>
+                  <%= link_to edit_comment_path(comment), class: "btn btn-sm btn-outline-secondary" do %>
+                    <i class="fa fa-edit"></i>
+                  <% end %>
+                  <%= link_to comment, method: :delete, data: { confirm: "Are you sure?" }, class: "btn btn-sm btn-outline-danger" do %>
+                    <i class="fa fa-trash"></i>
+                  <% end %>
+                <% end %>
+              </div>
+            </div>
+          </li>
+        <% end %>
+      </ul>
+      <div class="card-body">
+        <%= render "comments/form", comment: photo.comments.build %>
+      </div>
+    </div>
+  </div>
 </div>
