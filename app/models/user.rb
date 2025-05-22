@@ -1,4 +1,3 @@
-# app/models/user.rb
 # == Schema Information
 #
 # Table name: users
@@ -27,11 +26,12 @@
 #  index_users_on_reset_password_token  (reset_password_token) UNIQUE
 #  index_users_on_username              (username) UNIQUE
 #
-# app/models/user.rb
-# app/models/user.rb
+
 class User < ApplicationRecord
   devise :database_authenticatable, :registerable,
          :recoverable, :rememberable, :validatable
+
+  mount_uploader :avatar_image, ImageUploader
 
   # Direct associations
   has_many :own_photos, foreign_key: :owner_id, class_name: "Photo"
